@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Administrador - Muni Virtual</title>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="estilos-calendario.css">
+   <link rel="stylesheet" href="estilos-admin.css?v=3">
+</head>
+<body>
+
+    <div class="admin-wrapper">
+        <nav class="admin-nav">
+            <div class="nav-container">
+                <h1>MUNI<span>ADMIN</span></h1>
+                <div class="nav-buttons">
+    <button id="btn-cal" class="active" onclick="ver('calendario')">CALENDARIO</button>
+    <button id="btn-usu" onclick="ver('usuarios')">GESTIÓN CAJERAS</button>
+    <button id="btn-his" onclick="ver('historial')">HISTORIAL</button>
+</div>
+
+<div class="nav-actions">
+    <button id="btn-ventanilla" class="btn-ventanilla-cerrada" onclick="toggleVentanilla()">
+    Abrir ventanilla
+</button>
+    <button onclick="window.location.href='acceso.html'" class="btn-salir">SALIR</button>
+</div>
+            </div>
+        </nav>
+
+        <div id="main-content">
+
+            <div id="seccion-calendario" class="content-view">
+                <aside class="sidebar-admin">
+                    <h2 class="sidebar-title">CONTROL <br><span>TOTAL</span></h2>
+                    
+                    <div class="form-group-admin">
+                        <label>Seleccionar Local</label>
+                        <select id="area-admin">
+                            <option>Coliseo Lolo Fernández</option>
+                            <option>Losa Deportiva Beto D'Laura</option>
+                            <option>Las palmas.png
+
+                            </option>
+                        </select>
+                    </div>
+
+                    <select id="filtro-tipo">
+                        <option value="todos">Todos</option>
+                        <option value="Alquiler">Alquiler</option>
+                        <option value="Concesión">Concesión</option>
+                    </select>
+                    
+                    <div class="info-box-admin">
+                        Haz clic en una reserva del calendario para <b>Aprobar</b> o <b>Rechazar</b> la solicitud.
+                    </div>
+
+                    <div class="notificaciones-admin">
+                        <h3>🔔 Notificaciones</h3>
+                        <div id="lista-notificaciones"></div>
+                    </div>
+                </aside>
+
+                <div class="calendar-wrapper-admin">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+
+            <div id="seccion-usuarios" class="content-view" style="display: none;">
+                <div class="usuarios-container">
+                    <div class="header-seccion">
+                        <h2>Gestión de Personal de Caja</h2>
+                        <p>Crea y administra las cuentas para el módulo de pagos.</p>
+                    </div>
+                    
+                    <div class="form-crear-cajera">
+                        <div class="input-field">
+                            <label>Usuario</label>
+                            <input type="text" id="new-u" placeholder="Ej. cajera3">
+                        </div>
+                        <div class="input-field">
+                            <label>Contraseña</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="new-p" placeholder="••••••••">
+                                <span id="togglePassword" class="eye-icon">
+                                    <svg id="icon-eye" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#666" viewBox="0 0 24 24">
+                                        <path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                        <button class="btn-crear" onclick="agregarCajera()">CREAR USUARIO</button>
+                    </div>
+
+                    <table class="tabla-admin">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Rol</th>
+                                <th>Contraseña</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-usuarios"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="seccion-historial" class="content-view" style="display: none;">
+                <div class="usuarios-container">
+                    <div class="header-seccion">
+                        <h2>Historial de Reservas</h2>
+                        <p>Consulta y filtra los registros aprobados.</p>
+                    </div>
+
+                    <div class="filtros-historial-v2">
+                        <div class="grupo-filtro">
+                            <label>Tipo</label>
+                            <select id="filtro-historial-tipo">
+                                <option value="todos">Todos</option>
+                                <option value="Alquiler">Alquiler</option>
+                                <option value="Concesión">Concesión</option>
+                            </select>
+                        </div>
+
+                        <div class="grupo-filtro">
+                            <label>Desde</label>
+                            <input type="date" id="filtro-historial-desde">
+                        </div>
+
+                        <div class="grupo-filtro">
+                            <label>Hasta</label>
+                            <input type="date" id="filtro-historial-hasta">
+                        </div>
+
+                        <button class="btn-filtrar" onclick="cargarHistorial()">
+                            Filtrar
+                        </button>
+
+                        <button class="btn-filtrar" onclick="descargarHistorialExcel()">
+                            Descargar Excel
+                        </button>
+                    </div>
+
+                    <div class="tabla-scroll">
+                        <table class="tabla-admin">
+                           <thead>
+    <tr>
+        <th>Código</th>
+        <th>Nombre del Solicitante</th>
+        <th>Local</th>
+        <th>Tipo</th>
+        <th>Fecha de Solicitud</th>
+        <th>Fecha de Aprobación</th>
+        <th>Monto Total</th>
+    </tr>
+</thead>
+                            <tbody id="tbody-historial"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="funciones-admin.js?v=10"></script>
+</body>
+</html>
