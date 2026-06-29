@@ -332,11 +332,23 @@ if (horaFinNum > 23) {
     return;
 }
 
-        const precioHora = precios[nombreNormalizado] || 0;
-
         let horasTotales = esTodoDia ? (horaFinNum - horaInicio) : parseInt(duracionInputVal);
 
-        let totalPagar = precioHora * horasTotales;
+        // ── ENFOQUE FUNCIONAL ────────────────────────────────────────────
+        // El monto se calcula con una función PURA (sin efectos secundarios,
+        // misma entrada => misma salida). Usa una tabla de tarifas inmutable
+        // y estrategias de cálculo por tipo (funciones de orden superior).
+        let totalPagar;
+        if (window.ReservasFuncional) {
+            totalPagar = window.ReservasFuncional.calcularMonto(
+                tipoSolicitud, nombreNormalizado, horasTotales
+            );
+        } else {
+            // Respaldo: lógica previa basada en Factory
+            const reservaObj = crearReserva(tipoSolicitud, nombreNormalizado);
+            totalPagar = reservaObj.calcularMonto(precios) * horasTotales;
+        }
+        // ─────────────────────────────────────────────────────────────────
 
         let totalFormateado = totalPagar.toFixed(2);
 

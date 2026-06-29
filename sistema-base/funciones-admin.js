@@ -147,10 +147,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     cargarNotificaciones();
 
- setInterval(() => {
-    calendar.refetchEvents();
-    cargarNotificaciones();
-}, 5000);
+ // ── ENFOQUE REACTIVO ─────────────────────────────────────────────
+ // Reemplazamos el setInterval por un flujo reactivo (timer) que emite
+ // cada 5s. El flujo aísla los errores con catchError, de modo que un
+ // fallo puntual no detiene la actualización. Modelo no bloqueante.
+ if (window.FlujosRxJS) {
+     window.FlujosRxJS.crearFlujoDeRefresco(
+         5000,
+         // La fuente devuelve una promesa resuelta; el refresco real lo
+         // hacen refetchEvents() y cargarNotificaciones() en el callback.
+         () => Promise.resolve(true),
+         () => { calendar.refetchEvents(); cargarNotificaciones(); }
+     );
+ } else {
+     // Respaldo: comportamiento previo por temporizador
+     setInterval(() => {
+         calendar.refetchEvents();
+         cargarNotificaciones();
+     }, 5000);
+ }
+ // ─────────────────────────────────────────────────────────────────
 
     document.getElementById('area-admin').addEventListener('change', function() {
         calendar.refetchEvents();
@@ -709,7 +725,16 @@ function abrirDetalleEvento(evento) {
             .then(resp => {
                if (resp === "ok") {
     evento.setExtendedProp('estado', nuevoEstado);
-    calendar.refetchEvents();
+
+    // ── PATRÓN OBSERVER ──────────────────────────────────────────
+    // Publicamos el cambio de estado. El gestorReservas notifica
+    // automáticamente a todos los observadores suscritos:
+    // ObservadorCalendario → refresca el calendario
+    // ObservadorNotificaciones → actualiza el contador
+    // ObservadorLog → registra en consola
+    gestorReservas.publicarCambio(datos.codigo, nuevoEstado);
+    // ─────────────────────────────────────────────────────────────
+
     cargarHistorial();
 
     // SOLO eliminar notificación cuando ya terminó la acción útil
