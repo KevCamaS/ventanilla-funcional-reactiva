@@ -1,0 +1,9 @@
+{
+  "name": "ventanilla-funcional-reactiva",
+  "version": "1.0.0",
+  "description": "Integracion de Programacion Funcional y Reactiva en el Sistema de Ventanilla Virtual de Reservas",
+  "scripts": {
+    "test": "node tests/pruebas.js"
+  },
+  "license": "MIT"
+}
