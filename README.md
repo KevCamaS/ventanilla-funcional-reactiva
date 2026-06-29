@@ -1,27 +1,36 @@
 # Sistema de Ventanilla Virtual de Reservas — Programación Funcional y Reactiva
 
-Proyecto del curso **Programación Funcional y Reactiva** — Universidad Nacional de Cañete (2026).
+Integración de patrones y técnicas de **Programación Funcional y Reactiva** en el Sistema de Ventanilla Virtual de Reservas de Locales Municipales de la Municipalidad Provincial de Cañete.
 
-Este repositorio toma el sistema base de la **Ventanilla Virtual de Reservas de Locales Municipales** (desarrollado previamente, con autorización de sus autores) e integra patrones y técnicas de **Programación Funcional y Reactiva** vistos en el curso.
-
-**Integrantes:** Yaya Carbonero Andy Alexis · Yaranga Huamanchaqui Oscar Andrés · Cama Sánchez Kevin
-**Docente:** Mag. Wilson Wilmar Candia Quispe
+El proyecto parte de un sistema web de reservas existente (construido con HTML, CSS, JavaScript y PHP sobre MySQL) y reescribe su lógica de cálculo, transformación de datos y actualización de la interfaz aplicando los fundamentos del paradigma funcional y reactivo, con el fin de mejorar el flujo de atenciones, la mantenibilidad del código y la respuesta del sistema ante los cambios de estado de las reservas.
 
 ---
 
-## ¿Qué se integró y dónde está cada tema del curso?
+## Arquitectura del proyecto
 
-| Tema del curso | Archivo que lo demuestra |
-|---|---|
-| Semana 1 — Inmutabilidad, funciones puras, código declarativo | `src/funcional/reservas-funcional.js` |
-| Semana 2 — Interfaces funcionales (predicados, transformadores) | `src/funcional/reservas-funcional.js` |
-| Funciones de Orden Superior | `src/funcional/reservas-funcional.js` |
-| Semana 4 — Operaciones de flujo (map / filter / reduce) | `src/funcional/reservas-funcional.js` |
-| Semana 5 — Fundamentos reactivos y Manifiesto Reactivo | `src/reactivo/gestor-estado-reactivo.js` |
-| Semana 6 — Patrón Observer | `src/reactivo/gestor-estado-reactivo.js` |
-| Semana 7 — Operadores reactivos (debounceTime, switchMap, map…) | `src/reactivo/flujos-rxjs.js` |
-| Semana 9 — Gestión de errores en flujos (catchError, retry) | `src/reactivo/flujos-rxjs.js` |
-| Semana 10 — Modelos no bloqueantes (asíncronos) | `src/reactivo/flujos-rxjs.js` |
+El código se organiza en dos grandes capas independientes del sistema base, de modo que la lógica funcional y reactiva quede aislada, reutilizable y comprobable:
+
+| Capa | Descripción | Archivo |
+|---|---|---|
+| Funcional | Funciones puras, inmutabilidad y operaciones de flujo (map / filter / reduce) para el cálculo y la transformación de reservas | `src/funcional/reservas-funcional.js` |
+| Reactiva — Observer | Gestor de estado observable que propaga automáticamente los cambios de estado de una reserva a los componentes de la interfaz | `src/reactivo/gestor-estado-reactivo.js` |
+| Reactiva — Flujos | Flujos de datos asíncronos con operadores y manejo de errores, en reemplazo del sondeo por temporizador | `src/reactivo/flujos-rxjs.js` |
+
+---
+
+## Conceptos aplicados
+
+### Programación Funcional
+- **Inmutabilidad:** las estructuras de datos no se modifican; cada operación devuelve una estructura nueva. La tabla de tarifas se protege con `Object.freeze`.
+- **Funciones puras:** el cálculo de montos y las transformaciones no producen efectos secundarios; para una misma entrada devuelven siempre la misma salida.
+- **Funciones de orden superior:** los predicados y transformadores se tratan como valores; se combinan y se pasan como argumentos a `map`, `filter` y `reduce`.
+- **Operaciones de flujo:** el procesamiento de listas de reservas se expresa como un pipeline declarativo `filter → map → reduce`, sin bucles ni contadores manuales.
+
+### Programación Reactiva
+- **Patrón Observer:** un sujeto observable publica los cambios de estado y notifica automáticamente a los observadores suscritos (calendario, notificaciones y registro de actividad), sin acoplamiento directo entre ellos.
+- **Flujos y operadores:** los eventos de la interfaz se modelan como flujos sobre los que se aplican operadores (`map`, `debounceTime`, `switchMap`, `distinctUntilChanged`).
+- **Gestión de errores:** los errores se tratan como mensajes explícitos del flujo; los operadores `catchError` y `retry` aportan resiliencia y evitan la caída total de la aplicación.
+- **Modelo no bloqueante:** la actualización de datos se realiza de forma asíncrona, liberando el hilo y evitando el sondeo continuo.
 
 ---
 
@@ -29,103 +38,42 @@ Este repositorio toma el sistema base de la **Ventanilla Virtual de Reservas de 
 
 ```
 .
-├── README.md                         ← este archivo
-├── INTEGRACION.md                    ← guía exacta de qué cambiar en el sistema base
+├── README.md
+├── INTEGRACION.md                    Documentación de la integración con el sistema base
+├── package.json
 ├── src/
 │   ├── funcional/
-│   │   └── reservas-funcional.js     ← Módulo A: funciones puras, inmutabilidad, map/filter/reduce
+│   │   └── reservas-funcional.js     Capa funcional
 │   └── reactivo/
-│       ├── gestor-estado-reactivo.js ← Módulo B: patrón Observer
-│       └── flujos-rxjs.js            ← Módulo B: flujos reactivos con RxJS
+│       ├── gestor-estado-reactivo.js Patrón Observer
+│       └── flujos-rxjs.js            Flujos reactivos con RxJS
 ├── tests/
-│   └── pruebas.js                    ← casos de prueba CP-01…CP-05 (Node.js)
-└── sistema-base/                     ← AQUÍ COLOCAS TODO EL SISTEMA ORIGINAL (ver paso 2)
-    ├── calendario.html
-    ├── admin.html
-    ├── funciones-calendario.js
-    ├── funciones-admin.js
-    ├── *.php
-    └── *.css
+│   └── pruebas.js                    Pruebas unitarias de la capa funcional
+└── sistema-base/                     Sistema web de reservas
+    ├── calendario.html, admin.html, ...
+    ├── funciones-calendario.js, funciones-admin.js, ...
+    ├── *.php, *.css, *.sql
+    └── img/
 ```
 
 ---
 
-## PASO A PASO para crear el repositorio
+## Pruebas
 
-### Paso 1 — Crear el repositorio en GitHub
+La capa funcional cuenta con pruebas unitarias que validan el cálculo de montos, la inmutabilidad de las tarifas y las operaciones de flujo. Se ejecutan con Node.js:
 
-1. Entra a GitHub y crea un repositorio nuevo, por ejemplo `ventanilla-funcional-reactiva`.
-2. Márcalo como **público** (o privado, según pida tu docente) y créalo **sin** README (lo subes tú).
-3. En tu PC, abre una terminal en una carpeta vacía y clónalo:
-   ```bash
-   git clone https://github.com/TU_USUARIO/ventanilla-funcional-reactiva.git
-   cd ventanilla-funcional-reactiva
-   ```
-
-### Paso 2 — Colocar el sistema base
-
-1. Crea la carpeta `sistema-base/`.
-2. Copia **todo** el sistema original tal cual (los `.html`, `.js`, `.php`, `.css`, imágenes y los `.sql`) dentro de `sistema-base/`.
-3. Este es el punto de partida sin tocar. Haz un primer commit para dejar registrado el estado original:
-   ```bash
-   git add sistema-base/
-   git commit -m "Sistema base original (sin cambios)"
-   ```
-
-> Hacer este commit primero es importante: deja evidencia del "antes", para que se note claramente el "después" con la integración funcional y reactiva.
-
-### Paso 3 — Agregar los archivos de este paquete
-
-1. Copia las carpetas `src/`, `tests/` y los archivos `README.md` e `INTEGRACION.md` (los que te entrego) a la raíz del repositorio.
-2. Commit:
-   ```bash
-   git add src/ tests/ README.md INTEGRACION.md
-   git commit -m "Modulos funcional y reactivo + pruebas"
-   ```
-
-### Paso 4 — Integrar los módulos al sistema base
-
-Sigue la guía detallada en **`INTEGRACION.md`**. Resumen de los cambios:
-
-1. **`sistema-base/calendario.html`** y **`sistema-base/admin.html`**: añadir los `<script>` de RxJS (CDN) y de los nuevos módulos `src/...`.
-2. **`sistema-base/funciones-calendario.js`**: usar `ReservasFuncional.calcularMonto(...)` en lugar del cálculo manual de monto.
-3. **`sistema-base/funciones-admin.js`**: usar `gestorReservas.publicarCambio(...)` al cambiar estado, y reemplazar el `setInterval` de polling por `FlujosRxJS.crearFlujoDeRefresco(...)`.
-
-Tras integrar:
-```bash
-git add sistema-base/
-git commit -m "Integracion funcional y reactiva en el sistema base"
-```
-
-### Paso 5 — Ejecutar las pruebas
-
-Requiere Node.js instalado.
 ```bash
 node tests/pruebas.js
 ```
-Debe mostrar `11 pasadas, 0 fallidas`. Toma una captura para el Anexo D del informe.
-
-### Paso 6 — Subir todo a GitHub
-
-```bash
-git push origin main
-```
 
 ---
 
-## Cómo ejecutar el sistema completo
+## Ejecución del sistema
 
-El sistema usa PHP + MySQL, así que necesitas un servidor local (XAMPP recomendado):
+El sistema requiere un servidor con soporte PHP y MySQL (por ejemplo, XAMPP):
 
-1. Instala **XAMPP** y enciende **Apache** y **MySQL**.
-2. Copia el contenido de `sistema-base/` a `C:/xampp/htdocs/ventanilla/`.
-3. Abre `http://localhost/phpmyadmin`, crea la base de datos `muni_virtual` e importa el archivo `database.sql` (o `code.sql`).
-4. Abre `http://localhost/ventanilla/calendario.html` en el navegador.
-5. Abre la consola del navegador (F12) para ver los mensajes `[OBSERVER]`, `[RxJS]`, `[CALENDARIO]`, etc., que evidencian el funcionamiento reactivo.
+1. Iniciar los servicios Apache y MySQL.
+2. Crear la base de datos `muni_virtual` e importar `sistema-base/database.sql`.
+3. Servir el contenido de `sistema-base/` y abrir `calendario.html` (vista ciudadana) o `admin.html` (panel administrativo).
 
----
-
-## Notas
-
-- Los módulos nuevos están desacoplados: si un `<script>` no carga, el sistema base sigue funcionando (degradación elegante).
-- Los archivos exponen su API tanto en `window` (para el navegador) como con `module.exports` (para las pruebas con Node), por eso se pueden probar sin abrir el navegador.
+El detalle de cómo la capa funcional y reactiva se conecta con el sistema base se documenta en [`INTEGRACION.md`](INTEGRACION.md).

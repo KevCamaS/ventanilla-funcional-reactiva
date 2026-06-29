@@ -1,203 +1,122 @@
-# Guía de Integración — Cómo conectar los módulos al sistema base
+# Integración de la capa funcional y reactiva con el sistema base
 
-Esta guía indica **exactamente** qué líneas agregar o cambiar en el sistema base para que los módulos funcional y reactivo entren en funcionamiento. Cada cambio es pequeño y reversible.
-
-> Convención: 🔵 ANTES = código original · 🟢 DESPUÉS = código integrado.
+Este documento describe cómo los módulos de las carpetas `src/funcional` y `src/reactivo` se conectan con el sistema web de reservas (`sistema-base/`). La integración es no intrusiva: los módulos se cargan como scripts adicionales y el sistema base conserva su funcionamiento aun si alguno no se carga.
 
 ---
 
-## 1. `sistema-base/calendario.html`
+## 1. Carga de los módulos
 
-Al final del `<body>`, **antes** de cargar `funciones-calendario.js`, añade RxJS y el módulo funcional.
+### `sistema-base/calendario.html`
 
-🔵 **ANTES:**
+La vista ciudadana incorpora la capa funcional y la librería RxJS antes de su script principal:
+
 ```html
-    <!-- PATRÓN FACTORY: debe cargarse antes que funciones-calendario.js -->
-    <script src="factory-reserva.js"></script>
-    <script src="funciones-calendario.js"></script>
-</body>
-```
-
-🟢 **DESPUÉS:**
-```html
-    <!-- Módulo funcional: funciones puras, inmutabilidad, map/filter/reduce -->
+    <!-- Capa funcional: funciones puras, inmutabilidad, map/filter/reduce -->
     <script src="../src/funcional/reservas-funcional.js"></script>
 
-    <!-- RxJS desde CDN (necesario para los flujos reactivos) -->
+    <!-- RxJS (flujos reactivos) -->
     <script src="https://cdn.jsdelivr.net/npm/rxjs@7.8.1/dist/bundles/rxjs.umd.min.js"></script>
 
     <script src="funciones-calendario.js"></script>
 </body>
 ```
 
-> Ajusta la ruta `../src/funcional/...` según dónde quede el archivo respecto al HTML. Si copiaste todo dentro de `htdocs/ventanilla/`, mueve también la carpeta `src/` ahí y usa `src/funcional/reservas-funcional.js`.
+### `sistema-base/admin.html`
+
+El panel administrativo incorpora además el gestor reactivo (patrón Observer) y los flujos:
+
+```html
+    <!-- Capa funcional -->
+    <script src="../src/funcional/reservas-funcional.js"></script>
+
+    <!-- RxJS -->
+    <script src="https://cdn.jsdelivr.net/npm/rxjs@7.8.1/dist/bundles/rxjs.umd.min.js"></script>
+
+    <!-- Capa reactiva: patrón Observer -->
+    <script src="../src/reactivo/gestor-estado-reactivo.js"></script>
+
+    <!-- Capa reactiva: flujos RxJS -->
+    <script src="../src/reactivo/flujos-rxjs.js"></script>
+
+    <script src="funciones-admin.js"></script>
+</body>
+```
 
 ---
 
-## 2. `sistema-base/funciones-calendario.js`
+## 2. Cálculo de montos con funciones puras
 
-Reemplaza el cálculo de monto por la función pura del módulo funcional.
+En `sistema-base/funciones-calendario.js`, el cálculo del monto de una reserva se delega a la función pura `calcularMonto` de la capa funcional, que no depende de variables globales ni del DOM:
 
-🔵 **ANTES** (alrededor de la línea 339, donde está el Factory):
 ```js
-// ── PATRÓN FACTORY ──────────────────────────────────────
-const reservaObj = crearReserva(tipoSolicitud, nombreNormalizado);
-const precioHora = reservaObj.calcularMonto(precios);
+const horasTotales = esTodoDia ? (horaFinNum - horaInicio) : parseInt(duracionInputVal);
 
-let horasTotales = esTodoDia ? (horaFinNum - horaInicio) : parseInt(duracionInputVal);
-let totalPagar   = precioHora * horasTotales;
-```
-
-🟢 **DESPUÉS** (usando la función pura — Semana 1, 2 y 4):
-```js
-// ── ENFOQUE FUNCIONAL: cálculo con función pura ──────────
-// calcularMonto no tiene efectos secundarios: misma entrada => misma salida.
-let horasTotales = esTodoDia ? (horaFinNum - horaInicio) : parseInt(duracionInputVal);
-
-let totalPagar = window.ReservasFuncional.calcularMonto(
+const totalPagar = window.ReservasFuncional.calcularMonto(
     tipoSolicitud,        // "Alquiler" | "Concesión" | "Exoneración"
-    nombreNormalizado,    // nombre del local
+    nombreNormalizado,    // local municipal
     horasTotales          // horas reservadas
 );
 ```
 
-> Esto elimina la dependencia del Factory para el cálculo. Si prefieres conservar el Factory para crear el objeto-reserva, puedes mantenerlo, pero el monto ahora lo da la función pura.
+El monto se obtiene a partir de una tabla de tarifas inmutable y de un diccionario de estrategias de cálculo por tipo de reserva, eliminando los condicionales dispersos del enfoque imperativo.
 
 ---
 
-## 3. `sistema-base/admin.html`
+## 3. Propagación reactiva de los cambios de estado (patrón Observer)
 
-En el `<body>`, antes de `funciones-admin.js`, añade RxJS, el módulo funcional y el gestor reactivo. El Observer (`gestor-estado-reactivo.js`) reemplaza al `observer-reserva.js` original.
+En `sistema-base/funciones-admin.js`, al confirmar el cambio de estado de una reserva en el servidor, se publica el cambio en el gestor observable. Los observadores suscritos (calendario, notificaciones y registro) reaccionan automáticamente:
 
-🔵 **ANTES:**
-```html
-    <!-- PATRÓN OBSERVER: debe cargarse antes que funciones-admin.js -->
-    <script src="observer-reserva.js"></script>
-    <script src="funciones-admin.js?v=10"></script>
-</body>
-```
-
-🟢 **DESPUÉS:**
-```html
-    <!-- Módulo funcional -->
-    <script src="../src/funcional/reservas-funcional.js"></script>
-
-    <!-- RxJS desde CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/rxjs@7.8.1/dist/bundles/rxjs.umd.min.js"></script>
-
-    <!-- Módulo reactivo: patrón Observer (reemplaza a observer-reserva.js) -->
-    <script src="../src/reactivo/gestor-estado-reactivo.js"></script>
-
-    <!-- Módulo reactivo: flujos RxJS -->
-    <script src="../src/reactivo/flujos-rxjs.js"></script>
-
-    <script src="funciones-admin.js?v=11"></script>
-</body>
-```
-
----
-
-## 4. `sistema-base/funciones-admin.js`
-
-### 4.a — Publicar el cambio de estado (patrón Observer, Semana 6)
-
-Esto probablemente ya lo hacía el archivo de tu compañero. Confirma que tras actualizar el estado en el servidor se llame a `publicarCambio`:
-
-🟢 **DEBE QUEDAR ASÍ** (dentro del `.then(resp => { if (resp === "ok") {...} })`):
 ```js
 if (resp === "ok") {
     evento.setExtendedProp('estado', nuevoEstado);
 
-    // PATRÓN OBSERVER: notifica automáticamente a calendario, notificaciones y log
+    // Publicación del cambio: el gestor notifica a todos los observadores
     gestorReservas.publicarCambio(datos.codigo, nuevoEstado);
 
     cargarHistorial();
-    // ... resto de la lógica (PDFs, etc.) sin cambios
-}
-```
-
-### 4.b — Reemplazar el polling por un flujo reactivo (Semanas 7, 9 y 10)
-
-🔵 **ANTES** (dentro de `DOMContentLoaded`, ~línea 150):
-```js
-setInterval(() => {
-    calendar.refetchEvents();
-    cargarNotificaciones();
-}, 5000);
-```
-
-🟢 **DESPUÉS** (flujo reactivo con manejo de errores y reintentos):
-```js
-// ENFOQUE REACTIVO: en lugar de un setInterval "ciego", usamos un flujo
-// que recarga los datos, reintenta ante fallos y no rompe la app si hay error.
-if (window.FlujosRxJS) {
-    window.FlujosRxJS.crearFlujoDeRefresco(
-        5000,                                   // cada 5 segundos
-        () => fetch(                            // función que trae las reservas
-            `obtener_reservas.php?local=${encodeURIComponent(document.getElementById('area-admin').value)}&tipo=${document.getElementById('filtro-tipo').value}`
-        ).then(r => r.json()),
-        (reservas) => {                         // qué hacer con los datos
-            calendar.refetchEvents();
-            cargarNotificaciones();
-        }
-    );
-} else {
-    // Respaldo: si RxJS no cargó, se mantiene el comportamiento original.
-    setInterval(() => { calendar.refetchEvents(); cargarNotificaciones(); }, 5000);
-}
-```
-
-### 4.c — (Opcional) Reaccionar al cambio de filtro con un flujo
-
-🔵 **ANTES:**
-```js
-document.getElementById('filtro-tipo').addEventListener('change', function() {
-    cargarNotificaciones();
-    calendar.refetchEvents();
-});
-```
-
-🟢 **DESPUÉS** (flujo con debounce y manejo de error — Semana 7 y 9):
-```js
-if (window.FlujosRxJS) {
-    window.FlujosRxJS.crearFlujoDeFiltro(
-        document.getElementById('filtro-tipo'),
-        (tipo) => fetch(
-            `obtener_reservas.php?local=${encodeURIComponent(document.getElementById('area-admin').value)}&tipo=${tipo}`
-        ).then(r => r.json()),
-        (reservas) => { calendar.refetchEvents(); cargarNotificaciones(); }
-    );
-} else {
-    document.getElementById('filtro-tipo').addEventListener('change', function() {
-        cargarNotificaciones(); calendar.refetchEvents();
-    });
 }
 ```
 
 ---
 
-## 5. Verificación
+## 4. Actualización mediante flujos reactivos
 
-1. Abre `admin.html` en el navegador con la consola (F12) abierta.
-2. Aprueba o rechaza una reserva. Deberías ver en consola:
-   ```
-   [OBSERVER] Publicando → Reserva 001: Aprobado
-   [CALENDARIO] 001 → "Aprobado"
-   [NOTIFICACIONES] Actividad en 001
-   [LOG] hh:mm:ss | Reserva 001 → "Aprobado"
-   ```
-3. Al cargar la página deberías ver `[RxJS] Módulo de flujos reactivos cargado.`
-4. Corta la conexión (o apaga Apache un momento) y observa que la app **no se rompe**: el `catchError` devuelve una lista vacía en lugar de detener todo.
+La actualización periódica de la interfaz se realiza con un flujo reactivo que recarga los datos, reintenta ante fallos de comunicación y no interrumpe la aplicación si el error persiste, en lugar de un temporizador de sondeo:
+
+```js
+window.FlujosRxJS.crearFlujoDeRefresco(
+    5000,
+    () => fetch(
+        `obtener_reservas.php?local=${encodeURIComponent(areaAdmin.value)}&tipo=${filtroTipo.value}`
+    ).then(r => r.json()),
+    (reservas) => { calendar.refetchEvents(); cargarNotificaciones(); }
+);
+```
+
+De forma análoga, el cambio del filtro de tipo se modela como un flujo con `debounceTime` y `catchError`, evitando peticiones excesivas y protegiendo la interfaz ante errores de red.
 
 ---
 
-## Resumen de archivos tocados
+## 5. Comportamiento en consola
 
-| Archivo | Cambio |
+Durante la operación del panel administrativo, la capa reactiva registra en consola la traza de los eventos, lo que permite verificar el funcionamiento del patrón Observer y de los flujos:
+
+```
+[OBSERVER] Publicando → Reserva 001: Aprobado
+[CALENDARIO] 001 → "Aprobado"
+[NOTIFICACIONES] Actividad en 001
+[LOG] hh:mm:ss | Reserva 001 → "Aprobado"
+```
+
+---
+
+## Archivos involucrados en la integración
+
+| Archivo | Rol en la integración |
 |---|---|
-| `calendario.html` | + scripts (RxJS, módulo funcional) |
-| `funciones-calendario.js` | cálculo de monto → `ReservasFuncional.calcularMonto` |
-| `admin.html` | + scripts (RxJS, gestor reactivo, flujos) |
-| `funciones-admin.js` | Observer + flujo reactivo en lugar de `setInterval` |
+| `calendario.html` | Carga la capa funcional y RxJS |
+| `funciones-calendario.js` | Cálculo de montos mediante funciones puras |
+| `admin.html` | Carga la capa funcional, el gestor reactivo y los flujos |
+| `funciones-admin.js` | Publicación de cambios (Observer) y actualización por flujos |
 
-Nada del backend PHP necesita cambiar para esta integración. Las recomendaciones de migrar el backend a Java/Reactor quedan documentadas como trabajo futuro en el informe.
+El backend PHP no requiere modificaciones para esta integración.
