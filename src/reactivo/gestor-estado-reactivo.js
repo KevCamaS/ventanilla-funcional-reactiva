@@ -3,11 +3,9 @@
  *  gestor-estado-reactivo.js
  *  MÓDULO B (parte 1) — Patrón Observer aplicado al Sistema de Reservas
  * ============================================================================
- *
- *  TEMAS DEL CURSO QUE DEMUESTRA ESTE ARCHIVO:
- *   - Semana 5: Fundamentos reactivos y Manifiesto Reactivo (orientado a
+ *   - Fundamentos reactivos y Manifiesto Reactivo (orientado a
  *     mensajes, bajo acoplamiento).
- *   - Semana 6: Patrón Observer — base conceptual de la programación reactiva.
+ *   - Patrón Observer — base conceptual de la programación reactiva.
  *
  *  PROBLEMA QUE RESUELVE:
  *   Antes, cuando el administrador aprobaba/rechazaba una reserva, había que
