@@ -3,12 +3,10 @@
  *  reservas-funcional.js
  *  MÓDULO A — Programación Funcional aplicada al Sistema de Reservas
  * ============================================================================
- *
- *  TEMAS DEL CURSO QUE DEMUESTRA ESTE ARCHIVO:
- *   - Semana 1: Inmutabilidad, funciones puras, código declarativo.
- *   - Semana 2: Interfaces funcionales (predicados, transformadores).
+ *   - Inmutabilidad, funciones puras, código declarativo.
+ *   - Interfaces funcionales (predicados, transformadores).
  *   - Funciones de Orden Superior: funciones que reciben/devuelven funciones.
- *   - Semana 4: Operaciones de flujo (map, filter, reduce) como pipeline.
+ *   - Operaciones de flujo (map, filter, reduce) como pipeline.
  *
  *  IDEA CENTRAL:
  *   Toda la lógica de cálculo y transformación de reservas vive aquí, en
