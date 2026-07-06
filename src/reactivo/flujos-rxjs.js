@@ -3,13 +3,11 @@
  *  flujos-rxjs.js
  *  MÓDULO B (parte 2) — Flujos Reactivos con RxJS
  * ============================================================================
- *
- *  TEMAS DEL CURSO QUE DEMUESTRA ESTE ARCHIVO:
- *   - Semana 5: Programación reactiva (flujos de datos asíncronos).
- *   - Semana 7: Operadores reactivos (map, filter, debounceTime, switchMap)
+ *   - Programación reactiva (flujos de datos asíncronos).
+ *   - Operadores reactivos (map, filter, debounceTime, switchMap)
  *     y el ciclo de un flujo (emisión, error, completado).
- *   - Semana 9: Gestión de errores en flujos reactivos (catchError, retry).
- *   - Semana 10: Modelos no bloqueantes (asíncronos) — el flujo no detiene
+ *   - Gestión de errores en flujos reactivos (catchError, retry).
+ *   - Modelos no bloqueantes (asíncronos) — el flujo no detiene
  *     la interfaz mientras espera la respuesta del servidor.
  *
  *  REQUISITO: cargar RxJS desde CDN en el HTML, ANTES de este archivo:
