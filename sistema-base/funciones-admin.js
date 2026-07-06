@@ -114,10 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         eventsSet: function(eventos) {
-            
-            console.log("Eventos cargados:", eventos.map(e => e.extendedProps));
-            console.log("Buscando código:", codigoPendiente);
-            
+
             if (!codigoPendiente) return;
             
             const evento = eventos.find(ev => 
@@ -125,15 +122,11 @@ document.addEventListener('DOMContentLoaded', function() {
             );
             
             if (evento) {
-                console.log("Evento encontrado:", evento);
-                
                 setTimeout(() => {
                     abrirDetalleEvento(evento);
                 }, 300);
 
                 codigoPendiente = null;
-            } else {
-                console.log("⏳ Aún no se encuentra el evento...");
             }
         },
 
@@ -209,8 +202,6 @@ function cargarCajeras() {
     fetch('obtener_usuarios.php')
     .then(res => res.json())
     .then(data => {
-
-        console.log(data);
 
         const tbody = document.getElementById('tbody-usuarios');
         tbody.innerHTML = '';
@@ -605,8 +596,6 @@ function formatearFechaDesdeDate(fechaObj) {
     return `${dia}/${mes}/${anio}`;
 }
 function irAReserva(codigo, fecha, local) {
-    
-    console.log("Código que llega:", codigo);
 
     ver('calendario');
     document.getElementById('area-admin').value = local;

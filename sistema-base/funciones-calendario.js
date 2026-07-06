@@ -178,9 +178,6 @@ document.addEventListener('DOMContentLoaded', function() {
             else if (estado === "pagado") {
                 info.el.style.backgroundColor = "#28a745"; 
             }
-
-            console.log("TIPO:", tipo);
-            console.log("ESTADO:", estado);
         },             
        
 
@@ -443,7 +440,6 @@ if (horaFinNum > 23) {
 
                 .then(res => res.text())
                 .then(data => {
-                    console.log("Respuesta BD:", data);
 
                     if (data === "ocupado") {
                         Swal.fire({
